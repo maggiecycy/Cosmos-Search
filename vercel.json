@@ -1,0 +1,24 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/wiki/en/:path*",
+      "destination": "https://en.wikipedia.org/:path*"
+    },
+    {
+      "source": "/api/wiki/zh/:path*",
+      "destination": "https://zh.wikipedia.org/:path*"
+    },
+    {
+      "source": "/api/wiki/ja/:path*",
+      "destination": "https://ja.wikipedia.org/:path*"
+    },
+    {
+      "source": "/api/wiki/commons/:path*",
+      "destination": "https://commons.wikimedia.org/:path*"
+    },
+    {
+      "source": "/api/img/:path*",
+      "destination": "https://upload.wikimedia.org/:path*"
+    }
+  ]
+}
