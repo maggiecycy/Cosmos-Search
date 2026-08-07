@@ -23,10 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 
-# Personal / copyrighted local copies (not shipped)
-public/audio/*.mp3
-public/audio/*.ogg
-public/audio/*.m4a
+# Local originals with descriptive names (optional)
+public/audio/0*.mp3
+public/audio/05-*.mp3
+# Keep shipped playlist tracks
+!public/audio/track-*.mp3
 !public/audio/README.md
 !public/audio/playlist.json
-!public/audio/cosmos-*.wav

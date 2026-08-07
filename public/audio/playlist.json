@@ -2,19 +2,29 @@
   "volume": 0.3,
   "tracks": [
     {
-      "src": "audio/cosmos-drift.wav",
-      "title": "Cosmos Drift",
-      "titleZh": "星尘漂流"
+      "src": "audio/track-01.mp3",
+      "title": "Field Run",
+      "titleZh": "原野追逐"
     },
     {
-      "src": "audio/cosmos-nebula.wav",
-      "title": "Nebula Hum",
-      "titleZh": "星云低语"
+      "src": "audio/track-02.mp3",
+      "title": "Field Run (Alt)",
+      "titleZh": "原野追逐 · Remix"
     },
     {
-      "src": "audio/cosmos-orbit.wav",
-      "title": "Deep Orbit",
-      "titleZh": "深空轨道"
+      "src": "audio/track-03.mp3",
+      "title": "Main Theme",
+      "titleZh": "主题曲 · 钢琴"
+    },
+    {
+      "src": "audio/track-04.mp3",
+      "title": "From Darkness",
+      "titleZh": "从黑暗中升起"
+    },
+    {
+      "src": "audio/track-05.mp3",
+      "title": "Deep Suite",
+      "titleZh": "氛围组曲"
     }
   ]
 }
