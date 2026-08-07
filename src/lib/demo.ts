@@ -1,4 +1,5 @@
 import type { CosmosItem, SearchResult } from './types'
+import { assetUrl } from './assetUrl'
 import { maxItemCount } from './layout'
 
 interface DemoCatalog {
@@ -8,11 +9,24 @@ interface DemoCatalog {
 
 let cache: DemoCatalog | null = null
 
+function rebaseItem(item: CosmosItem): CosmosItem {
+  return {
+    ...item,
+    thumbUrl: item.thumbUrl.startsWith('/') ? assetUrl(item.thumbUrl) : item.thumbUrl,
+    fullUrl: item.fullUrl?.startsWith('/') ? assetUrl(item.fullUrl) : item.fullUrl,
+  }
+}
+
 async function loadCatalog(): Promise<DemoCatalog> {
   if (cache) return cache
-  const res = await fetch('/demo/items.json')
+  const res = await fetch(assetUrl('demo/items.json'))
   if (!res.ok) throw new Error('Demo catalog unavailable')
-  cache = (await res.json()) as DemoCatalog
+  const raw = (await res.json()) as DemoCatalog
+  const catalogs: DemoCatalog['catalogs'] = {}
+  for (const [key, items] of Object.entries(raw.catalogs)) {
+    catalogs[key] = items.map(rebaseItem)
+  }
+  cache = { ...raw, catalogs }
   return cache
 }
 

@@ -23,9 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 
-# Personal ambient tracks (do not commit copyrighted audio)
+# Personal / copyrighted local copies (not shipped)
 public/audio/*.mp3
 public/audio/*.ogg
 public/audio/*.m4a
 !public/audio/README.md
 !public/audio/playlist.json
+!public/audio/cosmos-*.wav

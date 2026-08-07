@@ -1,30 +1,20 @@
 {
-  "volume": 0.28,
+  "volume": 0.3,
   "tracks": [
     {
-      "src": "/audio/02-cornfield-chase-croomin.mp3",
-      "title": "Cornfield Chase",
-      "titleZh": "原野追逐"
+      "src": "audio/cosmos-drift.wav",
+      "title": "Cosmos Drift",
+      "titleZh": "星尘漂流"
     },
     {
-      "src": "/audio/03-cornfield-chase-arius.mp3",
-      "title": "Cornfield Chase (Remix)",
-      "titleZh": "原野追逐 · Remix"
+      "src": "audio/cosmos-nebula.wav",
+      "title": "Nebula Hum",
+      "titleZh": "星云低语"
     },
     {
-      "src": "/audio/01-main-theme-piano.mp3",
-      "title": "Main Theme (Piano)",
-      "titleZh": "主题曲 · 钢琴版"
-    },
-    {
-      "src": "/audio/04-risen-from-darkness.mp3",
-      "title": "Risen from Darkness",
-      "titleZh": "从黑暗中升起"
-    },
-    {
-      "src": "/audio/05-ambient.mp3",
-      "title": "Ambient Suite",
-      "titleZh": "氛围组曲"
+      "src": "audio/cosmos-orbit.wav",
+      "title": "Deep Orbit",
+      "titleZh": "深空轨道"
     }
   ]
 }

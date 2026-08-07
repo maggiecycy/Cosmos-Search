@@ -87,9 +87,9 @@ async function resolveTexture(opts: {
   const hue = opts.hue ?? hashHue(opts.title) % 360
   const url = opts.thumbUrl
 
-  if (!url || url.startsWith('/demo/')) {
+  if (!url || url.includes('/demo/')) {
     // Demo SVGs: TextureLoader handles SVG unevenly — procedural is fine for demo
-    if (url.startsWith('/demo/')) {
+    if (url?.includes('/demo/')) {
       try {
         return await loadWithTextureLoader(url, 3000)
       } catch {

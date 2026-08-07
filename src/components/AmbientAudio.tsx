@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { assetUrl } from '../lib/assetUrl'
 import { useUiStore, type PlaylistTrack } from '../i18n/uiStore'
 
 interface PlaylistFile {
@@ -8,10 +9,12 @@ interface PlaylistFile {
 
 const FADE_MS = 480
 
+function resolveSrc(src: string) {
+  return assetUrl(src)
+}
+
 /**
- * Dual-deck ambient player.
- * Critical: never clear src via load() (fires error); play() must run inside user-gesture
- * when unlocking autoplay (toggle / first click).
+ * Dual-deck ambient player with BASE_URL-aware paths (GitHub Pages safe).
  */
 export function AmbientAudio() {
   const musicOn = useUiStore((s) => s.musicOn)
@@ -26,11 +29,10 @@ export function AmbientAudio() {
   const deckA = useRef<HTMLAudioElement | null>(null)
   const deckB = useRef<HTMLAudioElement | null>(null)
   const activeIsA = useRef(true)
-  const volumeRef = useRef(0.32)
+  const volumeRef = useRef(0.3)
   const currentSrcRef = useRef('')
   const fadeRaf = useRef(0)
   const [ready, setReady] = useState(false)
-  const [missing, setMissing] = useState(false)
   const [blocked, setBlocked] = useState(false)
 
   const getActive = () => (activeIsA.current ? deckA.current : deckB.current)
@@ -40,24 +42,52 @@ export function AmbientAudio() {
     let cancelled = false
     void (async () => {
       try {
-        const res = await fetch('/audio/playlist.json')
+        const res = await fetch(assetUrl('audio/playlist.json'))
         if (!res.ok) throw new Error('playlist missing')
         const data = (await res.json()) as PlaylistFile
         if (cancelled) return
         if (typeof data.volume === 'number') volumeRef.current = data.volume
-        setTracks(data.tracks ?? [])
+
+        const listed = data.tracks ?? []
+        // Keep only tracks that actually exist (HEAD / GET probe)
+        const available: PlaylistTrack[] = []
+        for (const track of listed) {
+          const url = resolveSrc(track.src)
+          try {
+            const probe = await fetch(url, { method: 'HEAD' })
+            if (probe.ok) {
+              available.push({ ...track, src: url })
+              continue
+            }
+          } catch {
+            /* fall through to GET range */
+          }
+          try {
+            const get = await fetch(url, { headers: { Range: 'bytes=0-1' } })
+            if (get.ok || get.status === 206) available.push({ ...track, src: url })
+          } catch {
+            /* skip missing */
+          }
+        }
+
+        if (cancelled) return
+        setTracks(available)
         setReady(true)
+        if (available.length === 0 && useUiStore.getState().musicOn) {
+          setMusicOn(false)
+        }
       } catch {
         if (!cancelled) {
-          setMissing(true)
+          setTracks([])
           setReady(true)
+          if (useUiStore.getState().musicOn) setMusicOn(false)
         }
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [setTracks])
+  }, [setTracks, setMusicOn])
 
   useEffect(() => {
     const a = new Audio()
@@ -89,7 +119,6 @@ export function AmbientAudio() {
     return el.play().then(
       () => {
         setBlocked(false)
-        setMissing(false)
         return true
       },
       () => {
@@ -106,14 +135,12 @@ export function AmbientAudio() {
 
     cancelAnimationFrame(fadeRaf.current)
 
-    // Same source — just resume / pause
-    if (currentSrcRef.current === src && active.src.includes(src.replace(/^\//, ''))) {
+    if (currentSrcRef.current === src) {
       if (shouldPlay) void tryPlay(active)
       else active.pause()
       return
     }
 
-    // First ever play: use active deck directly (no crossfade needed)
     if (!currentSrcRef.current) {
       currentSrcRef.current = src
       active.src = src
@@ -122,7 +149,6 @@ export function AmbientAudio() {
       return
     }
 
-    idle.onerror = () => setMissing(true)
     idle.src = src
     idle.volume = 0
 
@@ -133,7 +159,6 @@ export function AmbientAudio() {
       activeIsA.current = !activeIsA.current
       const target = volumeRef.current
       const t0 = performance.now()
-
       if (shouldPlay) void tryPlay(to)
 
       const tick = (now: number) => {
@@ -141,12 +166,10 @@ export function AmbientAudio() {
         const e = u * u * (3 - 2 * u)
         to.volume = target * e
         from.volume = target * (1 - e)
-        if (u < 1) {
-          fadeRaf.current = requestAnimationFrame(tick)
-        } else {
+        if (u < 1) fadeRaf.current = requestAnimationFrame(tick)
+        else {
           from.pause()
           from.volume = 0
-          // Keep src on idle deck — do NOT clear (empty load() → spurious error)
         }
       }
       fadeRaf.current = requestAnimationFrame(tick)
@@ -165,9 +188,12 @@ export function AmbientAudio() {
     }
   }
 
-  // Track / mute changes
   useEffect(() => {
-    if (!ready || tracks.length === 0) return
+    if (!ready) return
+    if (tracks.length === 0) {
+      if (musicOn) setMusicOn(false)
+      return
+    }
     const track = tracks[trackIndex % tracks.length]
     if (!track) return
 
@@ -183,12 +209,11 @@ export function AmbientAudio() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackIndex, tracks, ready, musicOn])
 
-  // Explicit user-gesture play (music button / unlock banner)
   useEffect(() => {
-    if (!musicOn || !ready || playNonce === 0) return
+    if (!musicOn || !ready || playNonce === 0 || tracks.length === 0) return
     const el = getActive()
     if (!el) return
-    if (!el.src && tracks.length > 0) {
+    if (!el.src) {
       const track = tracks[trackIndex % tracks.length]
       if (track) {
         currentSrcRef.current = track.src
@@ -199,7 +224,6 @@ export function AmbientAudio() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playNonce])
 
-  // Fallback: any pointer interaction unlocks autoplay
   useEffect(() => {
     if (!musicOn || !blocked) return
     const unlock = () => {
@@ -210,22 +234,7 @@ export function AmbientAudio() {
     return () => window.removeEventListener('pointerdown', unlock)
   }, [musicOn, blocked])
 
-  if (musicOn && missing) {
-    return (
-      <div className="pointer-events-auto absolute bottom-14 left-1/2 z-30 flex max-w-[min(22rem,90vw)] -translate-x-1/2 flex-col items-center gap-2 rounded-2xl border border-amber-300/25 bg-slate-950/85 px-4 py-3 text-center text-xs text-amber-100/90 backdrop-blur-md">
-        <p>{t().musicHint}</p>
-        <button
-          type="button"
-          className="rounded-full border border-white/15 px-3 py-1 text-[11px] text-slate-300 hover:border-cyan-300/40"
-          onClick={() => setMusicOn(false)}
-        >
-          OK
-        </button>
-      </div>
-    )
-  }
-
-  if (musicOn && blocked) {
+  if (musicOn && blocked && tracks.length > 0) {
     return (
       <button
         type="button"
