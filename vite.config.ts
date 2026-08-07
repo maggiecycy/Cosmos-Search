@@ -6,6 +6,8 @@ import tailwindcss from '@tailwindcss/vite'
 const ipv4Agent = new https.Agent({ family: 4, keepAlive: true })
 
 export default defineConfig({
+  // GitHub Pages project site: set VITE_BASE=/Cosmos-Search/ in CI
+  base: process.env.VITE_BASE || '/',
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {

@@ -13,6 +13,12 @@ pnpm dev
 
 浏览器打开终端提示的本地地址。离线也可完整体验：数据会回退到 `public/demo/`。
 
+## 在线地址
+
+- 仓库：[github.com/maggiecycy/Cosmos-Search](https://github.com/maggiecycy/Cosmos-Search)
+- GitHub Pages：`https://maggiecycy.github.io/Cosmos-Search/`（push `main` 后由 Actions 自动部署）
+- 也可把仓库导入 [Vercel](https://vercel.com/new) 一键部署（已含 `vercel.json` 代理重写）
+
 ## 体验路径
 
 1. 首屏输入 `bottle` / `猫` / `earth`
