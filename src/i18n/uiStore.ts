@@ -36,7 +36,22 @@ function loadLocale(): Locale {
   return 'zh'
 }
 
+/** Portfolio embeds pass ?mute=1 / ?embed=1; also detect iframe. */
+function isEmbedMuted(): boolean {
+  try {
+    if (typeof window === 'undefined') return false
+    if (window.self !== window.top) return true
+    const q = new URLSearchParams(window.location.search)
+    return q.has('mute') || q.has('embed')
+  } catch {
+    // cross-origin iframe access to top can throw — treat as embed
+    return true
+  }
+}
+
 function loadMusic(): boolean {
+  // Always silent when embedded in another site (e.g. maggiecycy.com project preview)
+  if (isEmbedMuted()) return false
   try {
     const v = localStorage.getItem('cosmos-music')
     if (v === null) return true
